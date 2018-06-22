@@ -11,6 +11,7 @@ import android.support.test.espresso.IdlingResource;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -59,6 +60,12 @@ public class RecipesActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipes);
 
+        Toolbar toolbar = findViewById(R.id.recipe_toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(R.string.app_name);
+        }
+
         //Assign the views
         recipeRecyclerView = findViewById(R.id.rv_recipes);
         progressBar = findViewById(R.id.progress_bar);
@@ -89,7 +96,7 @@ public class RecipesActivity extends AppCompatActivity implements
             recipeRecyclerView.setVisibility(View.VISIBLE);
             layoutManager = new GridLayoutManager(this, spanCount);
             recipeRecyclerView.setLayoutManager(layoutManager);
-            utils.loadRecipes(context);
+            utils.loadRecipes(this);
         }
     }
 

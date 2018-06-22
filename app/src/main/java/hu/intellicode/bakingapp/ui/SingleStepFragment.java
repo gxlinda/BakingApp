@@ -4,6 +4,9 @@ package hu.intellicode.bakingapp.ui;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,6 +32,7 @@ import java.util.ArrayList;
 
 import hu.intellicode.bakingapp.R;
 import hu.intellicode.bakingapp.helper.RecipeData;
+import hu.intellicode.bakingapp.helper.SimpleIdlingResource;
 import hu.intellicode.bakingapp.models.Step;
 
 /**
@@ -48,6 +52,9 @@ public class SingleStepFragment extends Fragment {
     Uri videoUri;
     boolean playWhenReady;
     long videoPosition = 0;
+    int currentWindow = 0;
+    @Nullable
+    private SimpleIdlingResource simpleIdlingResource;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment
@@ -64,18 +71,23 @@ public class SingleStepFragment extends Fragment {
         exoPlayerView = rootView.findViewById(R.id.exoplayer_view);
         thumbnailView = rootView.findViewById(R.id.video_imageview);
 
+        simpleIdlingResource = getSimpleIdlingResource();
+        simpleIdlingResource.setIdleState(false);
+
         // Load the saved state if there is one
         if (savedInstanceState != null) {
+            steps = savedInstanceState.getParcelableArrayList("STEPS");
             videoPosition = savedInstanceState.getLong("VIDEO_POSITION");
             playWhenReady = savedInstanceState.getBoolean("PLAY_WHEN_READY");
-        }
-
-        args = getArguments();
-        if (getArguments() != null) {
-            steps = args.getParcelableArrayList("STEPS");
             updateStepView(RecipeData.stepIndex);
-        }
 
+        } else {
+            args = getArguments();
+            if (getArguments() != null) {
+                steps = args.getParcelableArrayList("STEPS");
+                updateStepView(RecipeData.stepIndex);
+            }
+        }
         return rootView;
     }
 
@@ -100,7 +112,6 @@ public class SingleStepFragment extends Fragment {
         } else {
             exoPlayerView.setVisibility(View.VISIBLE);
             thumbnailView.setVisibility(View.GONE);
-//            initializeMediaSession();
             videoUri = Uri.parse(step.getVideoURL());
             initializePlayer(videoUri);
         }
@@ -116,7 +127,7 @@ public class SingleStepFragment extends Fragment {
      *
      * @param mediaUri The URI of the video to play.
      */
-    private void initializePlayer(Uri mediaUri) {
+    public void initializePlayer(Uri mediaUri) {
         if (mExoPlayer == null) {
             // Create an instance of the ExoPlayer.
             TrackSelector trackSelector = new DefaultTrackSelector();
@@ -129,8 +140,9 @@ public class SingleStepFragment extends Fragment {
             MediaSource mediaSource = new ExtractorMediaSource(mediaUri, new DefaultDataSourceFactory(
                     rootView.getContext(), userAgent), new DefaultExtractorsFactory(), null, null);
             mExoPlayer.prepare(mediaSource);
-            mExoPlayer.seekTo(videoPosition);
+            mExoPlayer.seekTo(currentWindow, videoPosition);
             mExoPlayer.setPlayWhenReady(playWhenReady);
+            simpleIdlingResource.setIdleState(true);
         }
     }
 
@@ -138,14 +150,12 @@ public class SingleStepFragment extends Fragment {
      * Release ExoPlayer.
      */
     private void releasePlayer() {
+        videoPosition = mExoPlayer.getCurrentPosition();
+        playWhenReady = mExoPlayer.getPlayWhenReady();
+        currentWindow = mExoPlayer.getCurrentWindowIndex();
         mExoPlayer.stop();
         mExoPlayer.release();
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        if (mExoPlayer != null) releasePlayer();
+        //mExoPlayer = null;
     }
 
     @Override
@@ -157,8 +167,19 @@ public class SingleStepFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        if (mExoPlayer != null) releasePlayer();
+//        if (mExoPlayer != null) releasePlayer();
+        mExoPlayer = null;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (currentWindow == 0) {
+            initializePlayer(videoUri);
+            //mExoPlayer.setPlayWhenReady(true);
+        }
+    }
+
     /**
      * Save the current state of this fragment
      */
@@ -166,8 +187,18 @@ public class SingleStepFragment extends Fragment {
     public void onSaveInstanceState(Bundle currentState) {
         super.onSaveInstanceState(currentState);
         if (mExoPlayer != null) {
-            currentState.putLong("VIDEO_POSITION", mExoPlayer.getCurrentPosition());
-            currentState.putBoolean("PLAY_WHEN_READY", mExoPlayer.getPlayWhenReady());
+            currentState.putLong("VIDEO_POSITION", videoPosition);
+            currentState.putBoolean("PLAY_WHEN_READY", playWhenReady);
+            currentState.putParcelableArrayList("STEPS", steps);
         }
+    }
+
+    @VisibleForTesting
+    @NonNull
+    public SimpleIdlingResource getSimpleIdlingResource() {
+        if (simpleIdlingResource == null) {
+            simpleIdlingResource = new SimpleIdlingResource();
+        }
+        return simpleIdlingResource;
     }
 }

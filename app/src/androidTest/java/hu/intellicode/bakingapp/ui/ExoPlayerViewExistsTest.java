@@ -1,6 +1,8 @@
 package hu.intellicode.bakingapp.ui;
 
 
+import android.support.test.espresso.Espresso;
+import android.support.test.espresso.IdlingResource;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -12,6 +14,8 @@ import android.view.ViewParent;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,8 +36,17 @@ import static org.hamcrest.Matchers.is;
 @RunWith(AndroidJUnit4.class)
 public class ExoPlayerViewExistsTest {
 
+    private IdlingResource mIdlingResource;
+
     @Rule
     public ActivityTestRule<RecipesActivity> mActivityTestRule = new ActivityTestRule<>(RecipesActivity.class);
+
+    @Before
+    public void registerIdlingResource() {
+        mIdlingResource = mActivityTestRule.getActivity().getIdlingResource();
+        // To prove that the test fails, omit this call:
+        Espresso.registerIdlingResources(mIdlingResource);
+    }
 
     @Test
     public void exoPlayerViewExistsTest() {
@@ -48,15 +61,15 @@ public class ExoPlayerViewExistsTest {
                 allOf(withId(R.id.rv_step_descriptions),
                         childAtPosition(
                                 withClassName(is("android.widget.LinearLayout")),
-                                2)));
+                                3)));
         recyclerView2.perform(actionOnItemAtPosition(0, click()));
 
         // Added a sleep statement to match the app's execution delay.
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(1000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         ViewInteraction frameLayout = onView(
                 allOf(withId(R.id.exoplayer_view),
@@ -69,6 +82,13 @@ public class ExoPlayerViewExistsTest {
                         isDisplayed()));
         frameLayout.check(matches(isDisplayed()));
 
+    }
+
+    @After
+    public void unregisterIdlingResource() {
+        if (mIdlingResource != null) {
+            Espresso.unregisterIdlingResources(mIdlingResource);
+        }
     }
 
     private static Matcher<View> childAtPosition(

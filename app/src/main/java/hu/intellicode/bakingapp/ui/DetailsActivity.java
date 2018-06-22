@@ -10,6 +10,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Toast;
 
@@ -21,7 +22,7 @@ import hu.intellicode.bakingapp.models.Ingredient;
 import hu.intellicode.bakingapp.models.Recipe;
 import hu.intellicode.bakingapp.widget.BakingAppWidget;
 
-public class DetailsActivity extends AppCompatActivity implements IngredientsAndStepsFragment.OnStepListItemSelected{
+public class DetailsActivity extends AppCompatActivity implements IngredientsAndStepsFragment.OnStepListItemSelected {
 
     private boolean mTwoPane;
     private Recipe chosenRecipe;
@@ -32,6 +33,8 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
+
+        Toolbar toolbar = findViewById(R.id.recipe_toolbar);
 
         prefs = this.getSharedPreferences(
                 "hu.intellicode.bakingapp", Context.MODE_PRIVATE);
@@ -55,15 +58,39 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
         if (savedInstanceState != null) {
             mTwoPane = savedInstanceState.getBoolean("PANE");
             chosenRecipe = savedInstanceState.getParcelable("RECIPE");
+            setSupportActionBar(toolbar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setTitle(chosenRecipe.getName());
+            }
             return;
         }
 
         chosenRecipe = RecipeData.recipe;
-        if ( chosenRecipe != null) {
+        if (chosenRecipe != null) {
             bundle.putParcelableArrayList("INGREDIENTS", chosenRecipe.getIngredients());
             bundle.putParcelableArrayList("STEPS", chosenRecipe.getSteps());
             bundle.putString("RECIPE_NAME", chosenRecipe.getName());
         }
+
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle(chosenRecipe.getName());
+        }
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager fm = getSupportFragmentManager();
+                if (mTwoPane == false) {
+                        fm.popBackStack(); //goes back to ingredients and steps fragment
+                } else {
+                    //goes back to recipe list screen
+                    finish();
+                }
+            }
+        });
 
         if (findViewById((R.id.two_pane_layout)) != null) {
             mTwoPane = true;
@@ -81,6 +108,7 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
                 ingredientsAndStepsFragment.setArguments(bundle);
                 fragmentManager.beginTransaction()
                         .replace(R.id.ingredients_and_steps_fragment, ingredientsAndStepsFragment)
+                        .addToBackStack(null)
                         .commit();
             }
         } else {
@@ -106,7 +134,8 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
             ingredientsString.append("\u0020 " + ingredient.getIngredient() + "\n");
         }
 
-        prefs.edit().putString("recipe_name", recipeName).apply();;
+        prefs.edit().putString("recipe_name", recipeName).apply();
+        ;
         prefs.edit().putString("ingredients", String.valueOf(ingredientsString)).apply();
 
     }
@@ -118,7 +147,7 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
         RecipeData.stepIndex = listIndex;
         chosenRecipe = RecipeData.recipe;
 
-        if(mTwoPane){
+        if (mTwoPane) {
             SingleStepFragment newSingleStepFragment = new SingleStepFragment();
             newSingleStepFragment.setListIndex(listIndex);
             bundle.putParcelableArrayList("STEPS", chosenRecipe.getSteps());
@@ -133,7 +162,7 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
             newSingleStepFragment.setArguments(bundle);
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_ingredients_and_steps, newSingleStepFragment)
-                    .addToBackStack("SINGLE_STEP_FRAG")
+                    .addToBackStack("STEP_STACK")
                     .commit();
         }
     }
@@ -141,11 +170,11 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
     @Override
     public void onBackPressed() {
         RecipeData.stepIndex = 0;
-        if (mTwoPane){
+        if (mTwoPane) {
             super.onBackPressed();
         } else if (findViewById(R.id.frame_single_step) != null) {
             getSupportFragmentManager().popBackStack();
-        } else if (findViewById(R.id.frame_ingredients_and_steps) != null){
+        } else if (findViewById(R.id.frame_ingredients_and_steps) != null) {
             Intent intent = new Intent(this, RecipesActivity.class);
             RecipeData.recipe = null;
             startActivity(intent);
@@ -158,4 +187,18 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
         currentState.putBoolean("PANE", mTwoPane);
         currentState.putParcelable("RECIPE", chosenRecipe);
     }
+
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        switch (item.getItemId()) {
+//            SingleStepFragment newSingleStepFragment = new SingleStepFragment();
+//            newSingleStepFragment.setListIndex(listIndex);
+//            getSupportFragmentManager().beginTransaction()
+//                    .replace(R.id.frame_ingredients_and_steps, newSingleStepFragment)
+//                    .addToBackStack(null)
+//                    .commit();
+//            return true;
+//        }
+//        return false;
+//    }
 }

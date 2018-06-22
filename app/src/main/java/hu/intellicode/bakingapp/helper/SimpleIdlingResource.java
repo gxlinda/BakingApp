@@ -21,7 +21,7 @@ import android.support.test.espresso.IdlingResource;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-//Idling REsource for Espresso tests
+//Idling Resource for Espresso tests
 
 public class SimpleIdlingResource implements IdlingResource {
 
