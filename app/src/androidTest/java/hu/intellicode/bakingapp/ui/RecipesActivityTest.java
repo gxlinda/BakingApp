@@ -32,17 +32,15 @@ public class RecipesActivityTest {
     private IdlingResource mIdlingResource;
     private String RECIPE_NAME;
 
+    @Rule
+    public ActivityTestRule<RecipesActivity> mActivityTestRule = new ActivityTestRule<>(RecipesActivity.class);
+
     @Before
     public void registerIdlingResource() {
         mIdlingResource = mActivityTestRule.getActivity().getIdlingResource();
         // To prove that the test fails, omit this call:
         Espresso.registerIdlingResources(mIdlingResource);
-
     }
-
-    @Rule
-    public ActivityTestRule<RecipesActivity> mActivityTestRule = new ActivityTestRule<>(RecipesActivity.class);
-
 
     //checks if a recipe is clicked, it opens the details of that recipe
     @Test

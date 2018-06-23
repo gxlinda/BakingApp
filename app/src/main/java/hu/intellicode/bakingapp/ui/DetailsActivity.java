@@ -14,13 +14,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-
 import hu.intellicode.bakingapp.R;
 import hu.intellicode.bakingapp.helper.RecipeData;
-import hu.intellicode.bakingapp.models.Ingredient;
 import hu.intellicode.bakingapp.models.Recipe;
-import hu.intellicode.bakingapp.widget.BakingAppWidget;
+import hu.intellicode.bakingapp.widget.BakingAppWidgetProvider;
 
 public class DetailsActivity extends AppCompatActivity implements IngredientsAndStepsFragment.OnStepListItemSelected {
 
@@ -43,15 +40,16 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                saveIngredientsToSharedPref(chosenRecipe);
-                Snackbar.make(view, "Ingredients added to widget!", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-                Intent intentUpdate = new Intent(DetailsActivity.this, BakingAppWidget.class);
+//                saveIngredientsToSharedPref(chosenRecipe);
+                Intent intentUpdate = new Intent(DetailsActivity.this, BakingAppWidgetProvider.class);
+//                intentUpdate.putExtra("RECIPE_FOR_WIDGET", chosenRecipe);
                 intentUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
                 int[] ids = AppWidgetManager.getInstance(getApplication())
-                        .getAppWidgetIds(new ComponentName(getApplication(), BakingAppWidget.class));
+                        .getAppWidgetIds(new ComponentName(getApplication(), BakingAppWidgetProvider.class));
                 intentUpdate.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
                 sendBroadcast(intentUpdate);
+                Snackbar.make(view, "Ingredients added to widget!", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
             }
         });
 
@@ -123,22 +121,24 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
         }
     }
 
-    private void saveIngredientsToSharedPref(Recipe chosenRecipe) {
-        String recipeName = chosenRecipe.getName();
-        ArrayList ingredientList = chosenRecipe.getIngredients();
-        StringBuilder ingredientsString = new StringBuilder();
-        for (int i = 0; i < ingredientList.size(); i++) {
-            Ingredient ingredient = (Ingredient) ingredientList.get(i);
-            ingredientsString.append(String.valueOf(ingredient.getQuantity()));
-            ingredientsString.append("\u0020 " + ingredient.getMeasure());
-            ingredientsString.append("\u0020 " + ingredient.getIngredient() + "\n");
-        }
-
-        prefs.edit().putString("recipe_name", recipeName).apply();
-        ;
-        prefs.edit().putString("ingredients", String.valueOf(ingredientsString)).apply();
-
-    }
+//    private void saveIngredientsToSharedPref(Recipe chosenRecipe) {
+//        String recipeName = chosenRecipe.getName();
+//        ArrayList ingredientList = chosenRecipe.getIngredients();
+////        StringBuilder ingredientsString = new StringBuilder();
+////        for (int i = 0; i < ingredientList.size(); i++) {
+////            Ingredient ingredient = (Ingredient) ingredientList.get(i);
+////            ingredientsString.append(String.valueOf(ingredient.getQuantity()));
+////            ingredientsString.append("\u0020 " + ingredient.getMeasure());
+////            ingredientsString.append("\u0020 " + ingredient.getIngredient() + "\n");
+////        }
+////
+////        prefs.edit().putString("recipe_name", recipeName).apply();
+////        prefs.edit().putString("ingredients", String.valueOf(ingredientsString)).apply();
+//        Context context = this;
+//        Intent intent = new Intent(context, BakingAppWidgetProvider.class);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+//
+//    }
 
     // Define the behavior for onStepListItemSelected
     @Override

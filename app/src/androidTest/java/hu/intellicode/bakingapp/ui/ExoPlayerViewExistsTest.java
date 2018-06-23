@@ -4,6 +4,7 @@ package hu.intellicode.bakingapp.ui;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.IdlingResource;
 import android.support.test.espresso.ViewInteraction;
+import android.support.test.espresso.contrib.RecyclerViewActions;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.LargeTest;
@@ -21,16 +22,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import hu.intellicode.bakingapp.R;
+import hu.intellicode.bakingapp.helper.utils;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withClassName;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.is;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
@@ -48,28 +47,13 @@ public class ExoPlayerViewExistsTest {
         Espresso.registerIdlingResources(mIdlingResource);
     }
 
+    //checks if exoplayer view exists after clicking on a step
     @Test
     public void exoPlayerViewExistsTest() {
-        ViewInteraction recyclerView = onView(
-                allOf(withId(R.id.rv_recipes),
-                        childAtPosition(
-                                withId(R.id.recipe_frame),
-                                0)));
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        utils.loadRecipes(mActivityTestRule.getActivity());
 
-        ViewInteraction recyclerView2 = onView(
-                allOf(withId(R.id.rv_step_descriptions),
-                        childAtPosition(
-                                withClassName(is("android.widget.LinearLayout")),
-                                3)));
-        recyclerView2.perform(actionOnItemAtPosition(0, click()));
-
-        // Added a sleep statement to match the app's execution delay.
-//        try {
-//            Thread.sleep(1000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        onView(withId(R.id.rv_recipes)).perform(RecyclerViewActions.actionOnItemAtPosition(0, click()));
+        onView(withId(R.id.rv_step_descriptions)).perform(RecyclerViewActions.actionOnItemAtPosition(0, click()));
 
         ViewInteraction frameLayout = onView(
                 allOf(withId(R.id.exoplayer_view),
@@ -81,14 +65,6 @@ public class ExoPlayerViewExistsTest {
                                 0),
                         isDisplayed()));
         frameLayout.check(matches(isDisplayed()));
-
-    }
-
-    @After
-    public void unregisterIdlingResource() {
-        if (mIdlingResource != null) {
-            Espresso.unregisterIdlingResources(mIdlingResource);
-        }
     }
 
     private static Matcher<View> childAtPosition(
@@ -108,5 +84,12 @@ public class ExoPlayerViewExistsTest {
                         && view.equals(((ViewGroup) parent).getChildAt(position));
             }
         };
+    }
+
+        @After
+    public void unregisterIdlingResource() {
+        if (mIdlingResource != null) {
+            Espresso.unregisterIdlingResources(mIdlingResource);
+        }
     }
 }

@@ -45,7 +45,7 @@ public abstract class utils {
     }
 
     //downloads recipes from the url with Retrofit
-    public static void loadRecipes(final Activity context) {
+    public static void loadRecipes(final Activity activity) {
         RecipeParsing recipeParsing = ApiConnection.getRecipe();
         recipeParsing.getRecipes().enqueue(new Callback<ArrayList<Recipe>>() {
             @Override
@@ -57,7 +57,7 @@ public abstract class utils {
                     recipes.addAll(response.body());
                     Log.d("Utils", "Recipes loaded from API: " + recipes);
 
-                    RecipesActivity recipesActivity = (RecipesActivity) context;
+                    RecipesActivity recipesActivity = (RecipesActivity) activity;
                     recipesActivity.setRecipeList(recipes);
                     recipesActivity.setProgressBarVisibility(View.GONE);
 
@@ -68,7 +68,7 @@ public abstract class utils {
 
             @Override
             public void onFailure(@NonNull Call<ArrayList<Recipe>> call, @NonNull Throwable t) {
-                Toast.makeText(context, "Error loading data from API: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, "Error loading data from API: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "Error loading from API" + t.getMessage());
                 RecipeData.success = false;
             }

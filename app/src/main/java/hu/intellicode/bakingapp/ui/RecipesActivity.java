@@ -1,6 +1,5 @@
 package hu.intellicode.bakingapp.ui;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -91,13 +90,14 @@ public class RecipesActivity extends AppCompatActivity implements
 
             // If there is internet connection, it loads data from json
         } else {
-            Context context = this;
             emptyStateTextView.setVisibility(View.GONE);
             recipeRecyclerView.setVisibility(View.VISIBLE);
             layoutManager = new GridLayoutManager(this, spanCount);
             recipeRecyclerView.setLayoutManager(layoutManager);
             utils.loadRecipes(this);
         }
+
+        getIdlingResource();
     }
 
     //sets recipelist to adapter after loading from json is done
