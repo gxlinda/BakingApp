@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import hu.intellicode.bakingapp.R;
 import hu.intellicode.bakingapp.helper.RecipeData;
 import hu.intellicode.bakingapp.models.Ingredient;
+import hu.intellicode.bakingapp.models.Recipe;
 
 public class WidgetService extends RemoteViewsService {
 
@@ -23,21 +24,33 @@ public class WidgetService extends RemoteViewsService {
     public class WidgetRemoteViewsFactory implements RemoteViewsFactory {
 
         Context context;
-        private ArrayList<Ingredient> ingredients;
-        private Ingredient ingredient;
+        Recipe recipe = RecipeData.recipe;
+        ArrayList<Ingredient> ingredients;
+        Ingredient ingredient;
 
         WidgetRemoteViewsFactory(Context context) {
             this.context = context;
         }
 
+        private void setIngredientsData(){
+            // check if a recipe exists to avoid NullPointerException.
+            Recipe recipe = RecipeData.recipe;
+            if(recipe != null){
+                ingredients = RecipeData.recipe.getIngredients();
+            } else{
+                ingredients = new ArrayList<>();
+            }
+        }
+
         @Override
         public void onCreate() {
+            setIngredientsData();
         }
 
         //load data for the list
         @Override
         public void onDataSetChanged() {
-            ingredients = RecipeData.recipe.getIngredients(); //does it have the data? how to check?
+            setIngredientsData();
         }
 
         @Override
@@ -46,7 +59,10 @@ public class WidgetService extends RemoteViewsService {
 
         @Override
         public int getCount() {
-            return ingredients.size();
+            if(ingredients == null)
+                return 0;
+            else
+                return ingredients.size();
         }
 
         @Override

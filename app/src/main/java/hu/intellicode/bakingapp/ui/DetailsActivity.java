@@ -2,9 +2,7 @@ package hu.intellicode.bakingapp.ui;
 
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -24,7 +22,6 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
     private boolean mTwoPane;
     private Recipe chosenRecipe;
     public Bundle bundle = new Bundle();
-    public SharedPreferences prefs;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -33,16 +30,11 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
 
         Toolbar toolbar = findViewById(R.id.recipe_toolbar);
 
-        prefs = this.getSharedPreferences(
-                "hu.intellicode.bakingapp", Context.MODE_PRIVATE);
-
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                saveIngredientsToSharedPref(chosenRecipe);
                 Intent intentUpdate = new Intent(DetailsActivity.this, BakingAppWidgetProvider.class);
-//                intentUpdate.putExtra("RECIPE_FOR_WIDGET", chosenRecipe);
                 intentUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
                 int[] ids = AppWidgetManager.getInstance(getApplication())
                         .getAppWidgetIds(new ComponentName(getApplication(), BakingAppWidgetProvider.class));
@@ -80,12 +72,19 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FragmentManager fm = getSupportFragmentManager();
-                if (mTwoPane == false) {
-                        fm.popBackStack(); //goes back to ingredients and steps fragment
+                if (mTwoPane == true){
+                    onBackPressed();
                 } else {
-                    //goes back to recipe list screen
-                    finish();
+                    FragmentManager fm = getSupportFragmentManager();
+                    if (mTwoPane == false && findViewById(R.id.frame_single_step) != null) {
+                        fm.popBackStack(); //goes back to ingredients and steps fragment
+                    } else {
+                        //goes back to recipe list screen
+                        finish();
+                        Intent intent = new Intent(DetailsActivity.this, RecipesActivity.class);
+                        RecipeData.recipe = null;
+                        startActivity(intent);
+                    }
                 }
             }
         });
@@ -121,25 +120,6 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
         }
     }
 
-//    private void saveIngredientsToSharedPref(Recipe chosenRecipe) {
-//        String recipeName = chosenRecipe.getName();
-//        ArrayList ingredientList = chosenRecipe.getIngredients();
-////        StringBuilder ingredientsString = new StringBuilder();
-////        for (int i = 0; i < ingredientList.size(); i++) {
-////            Ingredient ingredient = (Ingredient) ingredientList.get(i);
-////            ingredientsString.append(String.valueOf(ingredient.getQuantity()));
-////            ingredientsString.append("\u0020 " + ingredient.getMeasure());
-////            ingredientsString.append("\u0020 " + ingredient.getIngredient() + "\n");
-////        }
-////
-////        prefs.edit().putString("recipe_name", recipeName).apply();
-////        prefs.edit().putString("ingredients", String.valueOf(ingredientsString)).apply();
-//        Context context = this;
-//        Intent intent = new Intent(context, BakingAppWidgetProvider.class);
-//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-//
-//    }
-
     // Define the behavior for onStepListItemSelected
     @Override
     public void onStepListItemSelected(int listIndex) {
@@ -171,10 +151,12 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
     public void onBackPressed() {
         RecipeData.stepIndex = 0;
         if (mTwoPane) {
+            finish();
             super.onBackPressed();
         } else if (findViewById(R.id.frame_single_step) != null) {
             getSupportFragmentManager().popBackStack();
         } else if (findViewById(R.id.frame_ingredients_and_steps) != null) {
+            finish();
             Intent intent = new Intent(this, RecipesActivity.class);
             RecipeData.recipe = null;
             startActivity(intent);
@@ -187,18 +169,4 @@ public class DetailsActivity extends AppCompatActivity implements IngredientsAnd
         currentState.putBoolean("PANE", mTwoPane);
         currentState.putParcelable("RECIPE", chosenRecipe);
     }
-
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
-//            SingleStepFragment newSingleStepFragment = new SingleStepFragment();
-//            newSingleStepFragment.setListIndex(listIndex);
-//            getSupportFragmentManager().beginTransaction()
-//                    .replace(R.id.frame_ingredients_and_steps, newSingleStepFragment)
-//                    .addToBackStack(null)
-//                    .commit();
-//            return true;
-//        }
-//        return false;
-//    }
 }

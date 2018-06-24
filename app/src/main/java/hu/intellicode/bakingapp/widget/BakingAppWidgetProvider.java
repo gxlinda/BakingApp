@@ -16,6 +16,7 @@ import hu.intellicode.bakingapp.ui.RecipesActivity;
 /**
  * Implementation of App Widget functionality.
  * Tutorial used for immediate widget update: https://code.tutsplus.com/tutorials/code-a-widget-for-your-android-app-updating-your-widget--cms-30528
+ * Also big thanks to my fellow classmate Benerice, who helped me in debugging to make the widget correctly working
  */
 public class BakingAppWidgetProvider extends AppWidgetProvider {
 
@@ -25,33 +26,24 @@ public class BakingAppWidgetProvider extends AppWidgetProvider {
                                 int appWidgetId) {
 
         Recipe recipe = RecipeData.recipe;
-//        Recipe recipe = (Recipe) getIntent().getParcelableExtra("RECIPE_FOR_WIDGET");
-//        prefs = context.getSharedPreferences(
-//                "hu.intellicode.bakingapp", Context.MODE_PRIVATE);
-
-//        String recipeNameText = prefs.getString("recipe_name", "My Recipe");
-        String recipeNameText = recipe.getName();
-//        String ingredientsText = prefs.getString("ingredients", "Add a recipe to the widget!");
+        String recipeNameText = "";
+        if (recipe != null) {
+            recipeNameText = recipe.getName();
+        }
 
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
         views.setTextViewText(R.id.appwidget_text, recipeNameText);
-//        views.setTextViewText(R.id.appwidget_ingredients, ingredientsText);
 
         //opens app on widget click
         Intent intent = new Intent(context, RecipesActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-        views.setOnClickPendingIntent(R.id.listview_widget, pendingIntent);
+        views.setOnClickPendingIntent(R.id.appwidget_text, pendingIntent);
 
-        Intent intentUpdate = new Intent(context, BakingAppWidgetProvider.class);
-        intentUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-        int[] idArray = new int[]{appWidgetId};
-        intentUpdate.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, idArray);
+        //populates the list in the widget
+        Intent intentUpdate = new Intent(context, WidgetService.class);
+        intentUpdate.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetId);
         views.setRemoteAdapter(R.id.listview_widget, intentUpdate);
-
-        PendingIntent pendingUpdate = PendingIntent.getBroadcast(
-                context, appWidgetId, intentUpdate,
-                PendingIntent.FLAG_UPDATE_CURRENT);
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
@@ -62,6 +54,8 @@ public class BakingAppWidgetProvider extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
+            RemoteViews remoteViews = new RemoteViews(context.getPackageName(),
+                    R.layout.widget);
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
     }

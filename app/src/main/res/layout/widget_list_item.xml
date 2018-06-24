@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -9,12 +10,27 @@
         android:layout_height="wrap_content"
         android:id="@+id/widget_qty"
         android:textColor="#404040"
+        android:textSize="15sp"
+        android:layout_marginLeft="8dp"
+        tools:text="500.00"/>
+
+    <TextView
+        android:layout_width="4dp"
+        android:layout_height="wrap_content"
+        android:textColor="#404040"
         android:textSize="15sp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/widget_measure"
+        android:textColor="#404040"
+        android:textSize="15sp"
+        tools:text="TBSP"/>
+
+    <TextView
+        android:layout_width="4dp"
+        android:layout_height="wrap_content"
         android:textColor="#404040"
         android:textSize="15sp"/>
 
@@ -23,6 +39,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/widget_ingredient"
         android:textColor="#404040"
-        android:textSize="15sp"/>
+        android:textSize="15sp"
+        tools:text="flour"/>
 
 </LinearLayout>
